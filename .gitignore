@@ -1,0 +1,14 @@
+*.o
+*.obj
+*.gcda
+*.gcno
+*.gcov
+*.a
+*.d
+*.dep
+tags
+
+bolib_tests
+bolib_tests.txt
+gcov/*
+
