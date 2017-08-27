@@ -390,7 +390,7 @@ static uint32 SA1_Snes2Pc(RomFile* self, const uint32 sna)
 	}
 	else
 	{
-		pca = (uint32)((((self->pro->sa1adrinf.slots[slot])+ ((uint32)bnk&0x1f)) << 16) + ((uint32)sna & 0x7fff));
+		pca = (uint32)(((uint32)self->pro->sa1adrinf.slots[slot] << 16) + (((uint32)bnk&0x1f) << 15) + ((uint32)sna & 0x7fff));
 	}
 
 	if(self->pro->size <= pca) return ROMADDRESS_NULL;

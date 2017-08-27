@@ -76,3 +76,51 @@ TEST(Iterator, data)
 	CHECK(NULL != i);
 	LONGS_EQUAL(30, *i);
 }
+
+/**
+ * Check insert method
+ */
+TEST(Iterator, insert)
+{
+	int *ins;
+	int *chk;
+	Iterator* prev;
+	Iterator* ppre;
+	
+	ins = (int*)malloc(sizeof(int));
+	assert(ins);
+	*ins = 100;
+
+	target->insert(target, ins);
+	prev = target->prev(target);
+
+	CHECK(NULL != prev);
+	chk = (int*)prev->data(prev);
+	LONGS_EQUAL(100, (*chk));
+
+	
+	ins = (int*)malloc(sizeof(int));
+	assert(ins);
+	*ins = 999;
+
+	target->insert(target, ins);
+	ppre = target->prev(target);
+
+	CHECK(NULL != ppre);
+	chk = (int*)ppre->data(ppre);
+	LONGS_EQUAL(999, (*chk));
+
+	free(prev->data(prev));
+	free(ppre->data(ppre));
+	delete_Iterator(&prev);
+	delete_Iterator(&ppre);
+}
+
+/**
+ * Check remove method
+ */
+TEST(Iterator, remove)
+{
+	/* TODO: implement this test if implement remove method */
+	target->remove(target, true);
+}

@@ -12,6 +12,8 @@ struct _Iterator {
 	Iterator* (*prev)(Iterator*);
 	Iterator* (*next)(Iterator*);
 	void* (*data)(Iterator*);
+	bool  (*insert)(Iterator*, void*);
+	void  (*remove)(Iterator*, bool);
 	Iterator_protected* pro;
 };
 
