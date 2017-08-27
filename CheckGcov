@@ -1,6 +1,7 @@
 #!/bin/env sh
 
-GcovPrefix=実行された行
+#GcovPrefix=実行された行
+GcovPrefix="Lines executed"
 
 MakeSymlink() {
 	if test ! -h "$2"; then
@@ -22,7 +23,7 @@ PrintFormat () {
 CheckGcov() {
 	MakeSymlink ../src src
 	MakeSymlink ../tests tests
-	find ../objs/src -type f -name "*.gcda" -print0 | xargs -0 gcov
+	find ../objs/src -type f -name "*.gcda" -print0 | xargs -0 env LANG="C" gcov
 	rm src
 	rm tests
 }
