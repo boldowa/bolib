@@ -332,6 +332,49 @@ static uint32 LoRom_Pc2Snes(RomFile* self, const uint32 pca)
 }
 
 /*===== SA-1(LoRom) =====*/
+
+/**
+ * RPG Hacker: New SA-1 mapping functions, borrowed from Asar, since original
+ * functions didn't work correctly. See below for original functions.
+ */
+#ifdef ASAR_SA1ADDRMODE
+/**
+ * Note: This is the function for SMW-SA1.
+ *       So, it can't use "UseHiRomMapSA1" method.
+ */
+static const int sa1banks[8] = { 0 << 20, 1 << 20, -1, -1, 2 << 20, 3 << 20, -1, -1 };
+
+static uint32 SA1_Snes2Pc(RomFile* self, const uint32 sna)
+{
+	if ((sna & 0x408000) == 0x008000)
+	{
+		return sa1banks[(sna & 0xE00000) >> 21] | ((sna & 0x1F0000) >> 1) | (sna & 0x007FFF);
+	}
+	if ((sna & 0xC00000) == 0xC00000)
+	{
+		return sa1banks[((sna & 0x100000) >> 20) | ((sna & 0x200000) >> 19)] | (sna & 0x0FFFFF);
+	}
+	return ROMADDRESS_NULL;
+}
+static uint32 SA1_Pc2Snes(RomFile* self, const uint32 pca)
+{
+	{int i; for (i = 0;i < 8;i++)
+	{
+		if (sa1banks[i] == (pca & 0x600000)) { return 0x008000 | (i << 21) | ((pca&((i < 4) ? 0x0F8000 : 0x1F8000)) << 1) | (pca & 0x7FFF); }
+	}}
+	return ROMADDRESS_NULL;
+}
+/**
+ * RPG Hacker: Original SA-1 mapping functions.
+ * Left here for reference.
+ */
+
+#else
+
+/**
+ * Any rom compatibility function.
+ *   TODO: implement the function for switch slot.
+ */
 static uint32 SA1_Snes2Pc(RomFile* self, const uint32 sna)
 {
 	uint32 pca;
@@ -448,6 +491,7 @@ static uint32 SA1_Pc2Snes(RomFile* self, const uint32 pca)
 	}
 	return (((add + ((uint32)bnk & 0x0f)) << 16) + (((uint32)pca&0x17fff)|0x8000));
 }
+#endif
 
 /*===== HiRom =====*/
 static uint32 HiRom_Snes2Pc(RomFile* self, const uint32 sna)
