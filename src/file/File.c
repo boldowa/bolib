@@ -4,7 +4,11 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <assert.h>
+#if defined(WIN32) || defined(_WIN32)
+#include <windows.h>
+#else
 #include <sys/stat.h>
+#endif
 #include "common/types.h"
 #include "file/FilePath.h"
 #include "file/File.h"
@@ -147,11 +151,35 @@ static void Close(File* self)
 	}
 }
 
+static long getfilesize(FilePath* fp)
+{
+#if defined(WIN32) || defined(_WIN32)
+	HANDLE hFile;
+	DWORD dwSize;
+
+	hFile = CreateFile(fp->path_get(fp),
+		GENERIC_READ, FILE_SHARE_READ,
+		NULL,
+		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
+		NULL);
+	if(INVALID_HANDLE_VALUE == hFile) return 0;
+
+	dwSize = GetFileSize(hFile, NULL);
+	CloseHandle(hFile);
+	return dwSize;
+#else
+	struct stat st;
+	if(0 == stat(fp->path_get(fp), &st)
+	{
+		return st.st_size;
+	}
+#endif
+}
+
 static E_FileOpen Open(File* self)
 {
 	File_protected* f;
 	FilePath* fpath;
-	struct stat st;
 
 	assert(self);
 	f = self->pro;
@@ -159,10 +187,7 @@ static E_FileOpen Open(File* self)
 	if(NULL == f->mode) return FileOpen_NoMode;
 
 	fpath = f->filePath;
-	if(0 == stat(fpath->path_get(f->filePath), &st))
-	{
-		f->size = st.st_size;
-	}
+	f->size = getfilesize(f->filePath);
 
 	f->fp = fopen(fpath->path_get(f->filePath), f->mode);
 	if(NULL == f->fp) return FileOpen_CantAccess;
