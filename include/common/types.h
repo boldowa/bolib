@@ -15,7 +15,7 @@
     || defined(_Windows)
 #  define isWindows 1
 #  ifndef WINVER
-#    define WINVER 0x0400  // WINNT
+#    define WINVER 0x0400  /* WINNT */
 #  endif
 #else
 #  define isWindows 0
