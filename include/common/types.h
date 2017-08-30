@@ -7,20 +7,30 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define isWindows \
-		   defined(WIN32) \
-		|| defined(_WIN32) \
-		|| defined(WINDOWS) \
-		|| defined(_WINDOWS) \
-		|| defined(Windows) \
-		|| defined(_Windows) \
-	
+#if    defined(WIN32) \
+    || defined(_WIN32) \
+    || defined(WINDOWS) \
+    || defined(_WINDOWS) \
+    || defined(Windows) \
+    || defined(_Windows)
+#  define isWindows 1
+#  ifndef WINVER
+#    define WINVER 0x0400  // WINNT
+#  endif
+#else
+#  define isWindows 0
+#endif
 
-#define isUnix \
-		defined(UNIX) \
-		defined(_UNIX) \
-		defined(Linux) \
-		defined(_Linux) \
+#if    defined(UNIX) \
+    || defined(_UNIX) \
+    || defined(Linux) \
+    || defined(_Linux) \
+    || defined(linux) \
+    || defined(_linux)
+#  define isUnix 1
+#else
+#  define isUnix 0
+#endif
 
 
 #if defined(_MSC_VER)
@@ -41,9 +51,13 @@
 #        define true !false
 #      endif
 #    endif
-     /* MSVC funcs */
-#    define strncasecmp _strnicmp
-#    define strcasecmp _stricmp
+#  else
+#    include <stdbool.h>
+#  endif
+   /* MSVC funcs */
+#  define strncasecmp _strnicmp
+#  define strcasecmp _stricmp
+#  if WINVER >= 0x0502
 #    define fopen(fn,m) _fopen_b(fn,m,__func__)
      FILE* _fopen_b(const char*, const char*, const char*);
 #  endif
@@ -67,6 +81,7 @@
      /*--- C++ ---*/
 #    include <cstdint>
 #  endif
+#  include <strings.h>
 #endif
 
 /* define type */

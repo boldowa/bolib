@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <errno.h>
 
+#if WINVER >= 0x0502
 static const char* foperrstr(errno_t err)
 {
 	switch(err)
@@ -35,5 +36,6 @@ FILE* _fopen_b(const char* path, const char* mode, const char* func)
 	}
 	return fp;
 }
+#endif
 
 #endif

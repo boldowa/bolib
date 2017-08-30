@@ -1,15 +1,15 @@
 /**
  * File.c
  */
+#include "common/types.h"
 #include <stdlib.h>
 #include <memory.h>
 #include <assert.h>
-#if defined(WIN32) || defined(_WIN32)
-#include <windows.h>
+#if isWindows
+#  include <windows.h>
 #else
-#include <sys/stat.h>
+#  include <sys/stat.h>
 #endif
-#include "common/types.h"
 #include "file/FilePath.h"
 #include "file/File.h"
 
@@ -153,7 +153,7 @@ static void Close(File* self)
 
 static long getfilesize(FilePath* fp)
 {
-#if defined(WIN32) || defined(_WIN32)
+#if isWindows
 	HANDLE hFile;
 	DWORD dwSize;
 
@@ -166,13 +166,14 @@ static long getfilesize(FilePath* fp)
 
 	dwSize = GetFileSize(hFile, NULL);
 	CloseHandle(hFile);
-	return dwSize;
+	return (long)dwSize;
 #else
 	struct stat st;
-	if(0 == stat(fp->path_get(fp), &st)
+	if(0 == stat(fp->path_get(fp), &st))
 	{
 		return st.st_size;
 	}
+	return 0;
 #endif
 }
 
