@@ -52,6 +52,8 @@ static uint32 RatsSearch(RomFile*, const uint32, RatsSearcher_t);
 static bool RatsClean(RomFile*, const uint32);
 static bool IsValidSum(RomFile*);
 static void UseHiRomMapSA1(RomFile*, bool);
+static bool ChecksumUpdate(RomFile*);
+static void DetectRomType(RomFile*);
 
 
 /*--------------- Constructor / Destructor ---------------*/
@@ -115,6 +117,8 @@ RomFile* new_RomFile(const char* path)
 	self->RatsSearch = RatsSearchFail;
 	self->RatsClean = RatsCleanFalse;
 	self->UseHiRomMapSA1 = UseHiRomMapSA1;
+	self->ChecksumUpdate = ChecksumUpdate;
+	self->DetectRomType = DetectRomType;
 
 	/* init RomFile object */
 	return self;
@@ -153,7 +157,6 @@ void delete_RomFile(RomFile** self)
 
 /*--------------- internal methods ---------------*/
 
-static void DetectRomType(RomFile*);
 static void CalcSum(RomFile*);
 
 static long size_get(RomFile* self)
@@ -203,7 +206,7 @@ static E_FileOpen Open(RomFile* self)
 	assert(self->super.pro->size == rlen);
 	self->pro->raw = raw;
 
-	DetectRomType(self);
+	self->DetectRomType(self);
 	CalcSum(self);
 	if(MapMode_Unknown != self->pro->map)
 	{
@@ -239,21 +242,11 @@ static bool Reload(RomFile* self)
 
 static bool Write(RomFile* self)
 {
-	uint32 sumadr;
-	uint16 csumc;
-
 	assert(self);
 
-	sumadr = self->Snes2PcAdr(self, 0xffdc);
-	if(ROMADDRESS_NULL == sumadr) return false;
-
 	/* re-calculate checksum */
-	CalcSum(self);
-	csumc = self->pro->csum ^ 0xffff;
-	write16(&self->pro->rom[sumadr+0], csumc);
-	write16(&self->pro->rom[sumadr+2], self->pro->csum);
-	self->pro->hcsum = self->pro->csum;
-	self->pro->hcsumc = csumc;
+	if(false == self->ChecksumUpdate(self)) return false;
+
 	rewind(self->super.pro->fp);
 	fseek(self->super.pro->fp, 0, SEEK_SET);
 	if(self->pro->hasHeader)
@@ -947,5 +940,24 @@ static void UseHiRomMapSA1(RomFile* self, bool m)
 {
 	assert(self);
 	self->pro->sa1adrinf.useHiRomMap = m;
+}
+
+static bool ChecksumUpdate(RomFile* self)
+{
+	uint32 sumadr;
+	uint16 csumc;
+
+	assert(self);
+
+	sumadr = self->Snes2PcAdr(self, 0xffdc);
+	if(ROMADDRESS_NULL == sumadr) return false;
+
+	csumc = self->pro->csum ^ 0xffff;
+	write16(&self->pro->rom[sumadr+0], csumc);
+	write16(&self->pro->rom[sumadr+2], self->pro->csum);
+	self->pro->hcsum = self->pro->csum;
+	self->pro->hcsumc = csumc;
+
+	return true;
 }
 

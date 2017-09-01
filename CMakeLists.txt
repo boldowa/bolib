@@ -77,7 +77,7 @@ else()
 	add_common_define(CMAKE_C_FLAGS_RELEASE NDEBUG)
 endif()
 
-add_common_define(CMAKE_C_FLAGS_DEBUG ASAR_SA1ADDRMODE)
+#add_common_define(CMAKE_C_FLAGS_DEBUG ASAR_SA1ADDRMODE)
 add_common_define(CMAKE_C_FLAGS_RELEASE ASAR_SA1ADDRMODE)
 
 ### set C++ option

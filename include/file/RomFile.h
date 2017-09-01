@@ -57,6 +57,8 @@ struct _RomFile {
 	uint32 (*RatsSearch)(RomFile*, const uint32, RatsSearcher_t);
 	bool (*RatsClean)(RomFile*, const uint32);
 	void (*UseHiRomMapSA1)(RomFile*, bool);
+	bool (*ChecksumUpdate)(RomFile*);
+	void (*DetectRomType)(RomFile*);
 	/* protected members */
 	RomFile_protected* pro;
 };
