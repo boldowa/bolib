@@ -38,6 +38,7 @@ INCLUDE_DIRS =\
   include \
   include/common \
   include/file \
+  include/util \
   $(CPPUTEST_HOME)/include/ \
   $(CPPUTEST_HOME)/include/Platforms/Gcc\
   mocks
