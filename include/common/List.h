@@ -26,8 +26,9 @@ struct _List {
 	Iterator* (*begin)(List*);
 	Iterator* (*end)(List*);
 	Iterator* (*search)(List*, const void*, ListSearcher_t);
-	Iterator* (*searchex)(List*, const void*, ListSearcher_t, Iterator*, const bool);
+	Iterator* (*searchex)(List* self, const void* data, ListSearcher_t match, Iterator* beg, const bool isPrevSearch);
 	List* (*clone)(List*);
+	bool (*remove)(List*, Iterator*);
 	/* protected members */
 	List_protected* pro;
 };

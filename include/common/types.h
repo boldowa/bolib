@@ -18,19 +18,27 @@
 #  ifndef WINVER
 #    define WINVER 0x0400  /* WINNT */
 #  endif
+#  define WIN32_LEAN_AND_MEAN
+#  define popen _popen
+#  define pclose _pclose
 #else
 #  define isWindows 0
 #endif
 
 #if    defined(UNIX) \
-    || defined(_UNIX) \
-    || defined(Linux) \
-    || defined(_Linux) \
-    || defined(linux) \
-    || defined(_linux)
+    || defined(_UNIX)
 #  define isUnix 1
 #else
 #  define isUnix 0
+#endif
+
+#if    defined(Linux) \
+    || defined(_Linux) \
+    || defined(linux) \
+    || defined(_linux)
+#  define isLinux 1
+#else
+#  define isLinux 0
 #endif
 
 
@@ -122,4 +130,5 @@ typedef int64_t		int64;
 #  define strcat_s(s1, len, s2) strcat(s1, s2)
 #  define strncat_s(s1, len, s2, cnt) strncat(s1, s2, cnt)
 #  define sprintf_s(buf, len, fmt, ...)  sprintf(buf, fmt, ##__VA_ARGS__)
+#  define _stprintf_s(buf, len, fmt, ...)  sprintf(buf, fmt, ##__VA_ARGS__)
 #endif

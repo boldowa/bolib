@@ -275,8 +275,8 @@ TEST(RomFile, RatsSearch)
 
 	/* genetate rats tag */
 	ptr = target->GetSnesPtr(target, 0x8010);
-	memcpy(ptr, "STR", 3);
-	LONGS_EQUAL(0, memcmp("STR", ptr, 3));
+	memcpy(ptr, " SAR", 4);
+	LONGS_EQUAL(0, memcmp(" SAR", ptr, 4));
 
 	ptr = target->GetSnesPtr(target, RatsTag1Ptr);
 	memcpy(ptr, RatsTag1, 10);

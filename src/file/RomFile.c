@@ -47,13 +47,15 @@ static uint32 NullSnesAdr(RomFile*, const uint32);
 static uint8* GetPcPtr(RomFile*, const uint32);
 static uint8* GetSnesPtr(RomFile*, const uint32);
 static uint32 RatsSearchFail(RomFile*, const uint32, RatsSearcher_t);
-static bool RatsCleanFalse(RomFile*, const uint32);
+static uint32 RatsCleanFalse(RomFile*, const uint32);
 static uint32 RatsSearch(RomFile*, const uint32, RatsSearcher_t);
-static bool RatsClean(RomFile*, const uint32);
+static uint32 RatsClean(RomFile*, const uint32);
 static bool IsValidSum(RomFile*);
 static void UseHiRomMapSA1(RomFile*, bool);
 static bool ChecksumUpdate(RomFile*);
 static void DetectRomType(RomFile*);
+static uint32 SearchFreeSpace(RomFile*, const uint32);
+static bool HasHeader(RomFile*);
 
 
 /*--------------- Constructor / Destructor ---------------*/
@@ -119,6 +121,8 @@ RomFile* new_RomFile(const char* path)
 	self->UseHiRomMapSA1 = UseHiRomMapSA1;
 	self->ChecksumUpdate = ChecksumUpdate;
 	self->DetectRomType = DetectRomType;
+	self->SearchFreeSpace = SearchFreeSpace;
+	self->HasHeader = HasHeader;
 
 	/* init RomFile object */
 	return self;
@@ -245,6 +249,7 @@ static bool Write(RomFile* self)
 	assert(self);
 
 	/* re-calculate checksum */
+	CalcSum(self);
 	if(false == self->ChecksumUpdate(self)) return false;
 
 	rewind(self->super.pro->fp);
@@ -843,11 +848,69 @@ static uint32 RatsSearchFail(RomFile* self, const uint32 ad, RatsSearcher_t sear
 {
 	return ROMADDRESS_NULL;
 }
-static bool RatsCleanFalse(RomFile* self, const uint32 ad)
+static uint32 RatsCleanFalse(RomFile* self, const uint32 ad)
 {
-	return false;
+	return 0;
 }
 
+/**
+ * B-M memory search
+ */
+static uint8* memsearch(const uint8 *p1, const uint8 *p2, const int32 len, const uint8* end)
+{
+	int32 tail;
+	int32 shifts[256];
+	int i;
+
+	/* generate shift table */
+	for(i=0; i<256; i++) shifts[i] = len;
+	for(i=len-1;i>=0;i--)
+	{
+		shifts[p2[i]] = len-i-1;
+	}
+
+	/* search */
+	tail = len-1;
+	while(&p1[tail] <= end)
+	{
+		/* skip until tail match */
+		i = tail;
+		if(p1[i] != p2[i])
+		{
+			if(0 != shifts[p1[i]])
+			{
+				p1 = p1 + shifts[p1[i]];
+			}
+			else
+			{
+				p1++;
+			}
+			continue;
+		}
+
+		/* search from tail */
+		for(i--; i>=0; i--)
+		{
+			if(p1[i] != p2[i]) break;
+		}
+
+		/* match all data, found */
+		if(i<0) return (uint8*)p1;
+
+		/* not match, increase pointer */
+		if(0 != shifts[p1[i+1]])
+		{
+			p1 = p1 + shifts[p1[i+1]];
+		}
+		else
+		{
+			p1++;
+		}
+	}
+	return NULL;
+}
+
+#if 0
 static uint8* memsearch(const uint8 *p1, const uint8 *p2, const uint32 len, const uint8* end)
 {
 	int match;
@@ -869,6 +932,8 @@ static uint8* memsearch(const uint8 *p1, const uint8 *p2, const uint32 len, cons
 	}
 	return NULL;
 }
+#endif
+
 static uint32 RatsSearch(RomFile* self, const uint32 sna, RatsSearcher_t search)
 {
 	uint32 adr;
@@ -908,7 +973,7 @@ static uint32 RatsSearch(RomFile* self, const uint32 sna, RatsSearcher_t search)
 	return ROMADDRESS_NULL;
 }
 
-static bool RatsClean(RomFile* self, const uint32 sna)
+static uint32 RatsClean(RomFile* self, const uint32 sna)
 {
 	uint32 adr;
 	uint8* ptr;
@@ -933,7 +998,7 @@ static bool RatsClean(RomFile* self, const uint32 sna)
 	sz = (uint16)(sz + 9);
 	memset(ptr, FILL, sz);
 
-	return true;
+	return (uint32)sz;
 }
 
 static void UseHiRomMapSA1(RomFile* self, bool m)
@@ -961,3 +1026,90 @@ static bool ChecksumUpdate(RomFile* self)
 	return true;
 }
 
+static const uint8* SearchSub(const uint8* begin, const uint8* end, const uint32 len)
+{
+	uint32 i;
+	uint32 c;
+	uint32 base;
+	uint16 rsize;
+
+	c = 0;
+	i = 0;
+	base = 0;
+	/* search loop */
+	while(&begin[i]<end)
+	{
+		/* not zero data */
+		if(0 != begin[i])
+		{
+			/* skip rats tag */
+			if(0 == memcmp("STAR", &begin[i], 4))
+			{
+				rsize = read16(&begin[i+4]);
+				if(0xffff == (rsize + read16(&begin[i+6])))
+				{
+					i = i + 8 + rsize;
+				}
+			}
+			i++;
+			base = i;
+			c = 0;
+			continue;
+		}
+
+		/* count zero */
+		c++;
+		if(len <= c)
+		{
+			return &begin[base];
+		}
+		i++;
+	}
+
+	return NULL;
+}
+
+static uint32 SearchFreeSpace(RomFile* self, const uint32 len)
+{
+	uint32 reallen = len+8;
+	uint8 *top, *tail;
+	uint32 bnksize;
+	const uint8 *result;
+	uint8 *end;
+
+	end = self->GetPcPtr(self, (uint32)self->pro->size-1);
+	switch(self->pro->map)
+	{
+		case MapMode_21:
+		case MapMode_21H:
+		case MapMode_SPC7110:
+			bnksize = 0x10000;
+
+		default:
+			bnksize = 0x8000;
+	}
+
+	/* set range */
+	top = self->GetPcPtr(self, 0x80000);
+	tail = top + bnksize-1;
+
+	/* search space */
+	for(;tail<=end; top+=bnksize, tail+=bnksize)
+	{
+		/* set range */
+		result = SearchSub(top, tail, reallen);
+		if(NULL != result)
+		{
+			uint32 pca;
+			pca = (uint32)(result - self->GetPcPtr(self, 0));
+			return self->Pc2SnesAdr(self, pca);
+		}
+	}
+
+	return ROMADDRESS_NULL;
+}
+
+static bool HasHeader(RomFile* self)
+{
+	return self->pro->hasHeader;
+}

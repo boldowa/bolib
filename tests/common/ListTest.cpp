@@ -326,19 +326,44 @@ TEST(List, searchex)
 	/* no match check */
 	vvv = 0;
 	POINTERS_EQUAL(NULL, target->search(target, &vvv, MatchInt));
-	POINTERS_EQUAL(NULL, target->searchex(target, &vvv, MatchInt, NULL, true));
+	POINTERS_EQUAL(NULL, target->searchex(target, &vvv, MatchInt, target->end(target), true));
 
 	/* match */
 	vvv = 125;
 	CHECK(NULL != target->search(target, &vvv, MatchInt));
-	CHECK(NULL != target->searchex(target, &vvv, MatchInt, NULL, false));
+	CHECK(NULL != target->searchex(target, &vvv, MatchInt, target->begin(target), false));
 
 	/* match from tail */
-	CHECK(NULL != target->searchex(target, &vvv, MatchInt, NULL, true));
+	CHECK(NULL != target->searchex(target, &vvv, MatchInt, target->end(target), true));
 
 	/* multiple search */
 	vvv = 2;
-	it = target->searchex(target, &vvv, MatchInt, NULL, false);
+	it = target->searchex(target, &vvv, MatchInt, target->begin(target), false);
 	CHECK(NULL != it);
 	CHECK(NULL == target->searchex(target, &vvv, MatchInt, it->next(it), false));
+}
+
+
+/**
+ * remove method check
+ */
+TEST(List, remove)
+{
+	int vvv;
+	Iterator* it;
+
+	vvv = 1;
+	CHECK(target->push(target, iClone(&vvv)));
+	vvv = 2;
+	CHECK(target->push(target, iClone(&vvv)));
+	vvv = 125;
+	CHECK(target->push(target, iClone(&vvv)));
+	vvv = 999;
+	CHECK(target->push(target, iClone(&vvv)));
+	vvv = 8;
+	CHECK(target->push(target, iClone(&vvv)));
+
+	it = target->begin(target);
+	it = it->next(it);
+	target->remove(target, it);
 }

@@ -25,6 +25,7 @@ static Iterator* End(List*);
 static Iterator* Search(List*, const void*, ListSearcher_t);
 static Iterator* SearchEx(List*, const void*, ListSearcher_t, Iterator*, const bool);
 static List* Clone(List*);
+static bool Remove(List* self, Iterator* item);
 
 
 /*--------------- Constructor / Destructor ---------------*/
@@ -68,6 +69,7 @@ List* new_List(ListDataCloner_t cloner, ListDataDeleter_t deleter)
 	self->search = Search;
 	self->searchex = SearchEx;
 	self->clone = Clone;
+	self->remove = Remove;
 
 	/* init List object */
 	self->pro = pro;
@@ -196,7 +198,7 @@ static void* PopFront(List* self)
 	/* list update */
 	if(NULL != it)
 	{
-		it->prev = NULL;
+		it->pro->prev = NULL;
 	}
 	sep->top = it;
 	sep->length--;
@@ -233,7 +235,7 @@ static void* PopBack(List* self)
 	/* list update */
 	if(NULL != it)
 	{
-		it->next = NULL;
+		it->pro->next = NULL;
 	}
 	sep->tail = it;
 	sep->length--;
@@ -299,15 +301,11 @@ static Iterator* SearchEx(List* self, const void* data, ListSearcher_t match, It
 	Iterator_protected* itp;
 	assert(self);
 
-	it = self->pro->top;
-	if(true == isPrevSearch)
+	if(NULL == beg)
 	{
-		it = self->pro->tail;
+		return NULL;
 	}
-	if(NULL != beg)
-	{
-		it = beg;
-	}
+	it = beg;
 
 	if(false == isPrevSearch)
 	{
@@ -338,7 +336,7 @@ static Iterator* SearchEx(List* self, const void* data, ListSearcher_t match, It
 static Iterator* Search(List* self, const void* data, ListSearcher_t match)
 {
 	/* search from top */
-	return SearchEx(self, data, match, NULL, false);
+	return SearchEx(self, data, match, self->pro->top, false);
 }
 
 static List* Clone(List* src)
@@ -364,5 +362,56 @@ static List* Clone(List* src)
 	}
 
 	return dest;
+}
+
+static bool Remove(List* self, Iterator* item)
+{
+	Iterator* it;
+	void* d;
+	if(NULL == self->pro->top) return false;
+
+	/* match top */
+	if(item == self->pro->top)
+	{
+		d = self->popFront(self);
+		self->pro->deleter(d);
+		return true;
+	}
+
+	/* match tail */
+	if(item == self->pro->tail)
+	{
+		d = self->pop(self);
+		self->pro->deleter(d);
+		return true;
+	}
+
+	/* search */
+	it = self->pro->top->pro->next;
+	while(NULL != it)
+	{
+		if(it == item)
+		{
+			/* prev pointer change */
+			it = item->pro->prev;
+			it->pro->next = item->pro->next;
+
+			/* next pointer change */
+			it = item->pro->next;
+			it->pro->prev = item->pro->prev;
+
+			/* delete */
+			self->pro->deleter(item->pro->data);
+			delete_Iterator(&item);
+
+			self->pro->length--;
+
+			return true;
+		}
+		it = it->next(it);
+	}
+
+	/* not found */
+	return false;
 }
 

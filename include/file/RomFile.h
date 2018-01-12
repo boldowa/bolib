@@ -55,10 +55,12 @@ struct _RomFile {
 	uint32 (*Pc2SnesAdr)(RomFile*, const uint32);
 	uint32 (*Snes2PcAdr)(RomFile*, const uint32);
 	uint32 (*RatsSearch)(RomFile*, const uint32, RatsSearcher_t);
-	bool (*RatsClean)(RomFile*, const uint32);
+	uint32 (*RatsClean)(RomFile*, const uint32);
 	void (*UseHiRomMapSA1)(RomFile*, bool);
 	bool (*ChecksumUpdate)(RomFile*);
 	void (*DetectRomType)(RomFile*);
+	uint32 (*SearchFreeSpace)(RomFile*, const uint32);
+	bool (*HasHeader)(RomFile*);
 	/* protected members */
 	RomFile_protected* pro;
 };

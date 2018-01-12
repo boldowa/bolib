@@ -10,6 +10,7 @@
 #else
 #  include <sys/stat.h>
 #endif
+#include "file/libfile.h"
 #include "file/FilePath.h"
 #include "file/File.h"
 
@@ -151,32 +152,6 @@ static void Close(File* self)
 	}
 }
 
-static long getfilesize(FilePath* fp)
-{
-#if isWindows
-	HANDLE hFile;
-	DWORD dwSize;
-
-	hFile = CreateFile(fp->path_get(fp),
-		GENERIC_READ, FILE_SHARE_READ,
-		NULL,
-		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
-		NULL);
-	if(INVALID_HANDLE_VALUE == hFile) return 0;
-
-	dwSize = GetFileSize(hFile, NULL);
-	CloseHandle(hFile);
-	return (long)dwSize;
-#else
-	struct stat st;
-	if(0 == stat(fp->path_get(fp), &st))
-	{
-		return st.st_size;
-	}
-	return 0;
-#endif
-}
-
 static E_FileOpen Open(File* self)
 {
 	File_protected* f;
@@ -188,7 +163,7 @@ static E_FileOpen Open(File* self)
 	if(NULL == f->mode) return FileOpen_NoMode;
 
 	fpath = f->filePath;
-	f->size = getfilesize(f->filePath);
+	f->size = getfilesize(f->filePath->path_get(f->filePath));
 
 	f->fp = fopen(fpath->path_get(f->filePath), f->mode);
 	if(NULL == f->fp) return FileOpen_CantAccess;

@@ -19,6 +19,6 @@ fi
 rm -rf CMake* cmake_*
 
 echo "Build start..."
-cmake ..; cmake ..; make
+cmake ..; make -j2
 sync
 
