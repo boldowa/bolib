@@ -1,5 +1,5 @@
 /**
- * TextFile.c
+ * @file TextFile.c
  */
 #include "common/types.h"
 #include <stdlib.h>

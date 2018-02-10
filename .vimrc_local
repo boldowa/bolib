@@ -7,3 +7,13 @@ let includes = split(glob("include/*"), "\n")
 for p in includes
 	let &path.=",".getcwd()."/".p
 endfor
+
+"---------------------------------------
+" ale config
+"---------------------------------------
+let g:ale_linters = {'c': ['gcc']}
+let g:ale_c_gcc_options  = '-ansi '
+let g:ale_c_gcc_options .= '-I./build '
+let g:ale_c_gcc_options .= '-I./include '
+let g:ale_c_gcc_options .= '-Wall -Wno-format -Wconversion '
+

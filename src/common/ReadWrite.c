@@ -1,5 +1,8 @@
-#include "types.h"
-#include "ReadWrite.h"
+/**
+ * @file ReadWrite.c
+ */
+#include "common/types.h"
+#include "common/ReadWrite.h"
 
 uint16 read16(const uint8 *data)
 {

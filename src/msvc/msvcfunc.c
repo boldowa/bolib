@@ -1,5 +1,5 @@
 /**
- * msvcfunc.c
+ * @file msvcfunc.c
  *   this source will compile only visual studio.
  */
 #if defined(_MSC_VER)

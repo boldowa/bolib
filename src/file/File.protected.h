@@ -1,6 +1,6 @@
 #pragma once
 /**
- * File.protected.h
+ * @file File.protected.h
  */
 
 /**

@@ -1,5 +1,5 @@
 /**
- * List.c
+ * @file List.c
  */
 #include "common/types.h"
 #include <stdlib.h>

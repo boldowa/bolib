@@ -1,12 +1,13 @@
 /**
- * types.h
+ * @file types.h
  */
 #pragma once
 
-#include "compiler.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "compiler.h"
+#include "int_type.h"
 
 #if    defined(WIN32) \
     || defined(_WIN32) \
@@ -43,26 +44,6 @@
 
 
 #if defined(_MSC_VER)
-#  if (_MSC_VER < 1600)
-     /* It isn't supported stdint.h and stdbool.h in versions prior to Visual Studio 2010. */
-#    ifndef __cplusplus
-     /*--- C ---*/
-     /* boolean */
-#      ifdef _Bool
-        typedef _Bool bool;
-#      else
-        typedef char bool;
-#      endif
-#      ifndef false
-#        define false 0
-#      endif
-#      ifndef true
-#        define true !false
-#      endif
-#    endif
-#  else
-#    include <stdbool.h>
-#  endif
    /* MSVC funcs */
 #  define strncasecmp _strnicmp
 #  define strcasecmp _stricmp
@@ -70,40 +51,8 @@
 #    define fopen(fn,m) _fopen_b(fn,m,__func__)
      FILE* _fopen_b(const char*, const char*, const char*);
 #  endif
-
-   /* type stdint */
-   typedef unsigned char		uint8_t;
-   typedef unsigned short	uint16_t;
-   typedef unsigned int		uint32_t;
-   typedef unsigned long		uint64_t;
-   typedef char			int8_t;
-   typedef short			int16_t;
-   typedef int			int32_t;
-   typedef long			int64_t;
-
-#else
-#  ifndef __cplusplus
-     /*--- C ---*/
-#    include <stdbool.h>
-#    include <stdint.h>
-#  else
-     /*--- C++ ---*/
-#    include <cstdint>
-#  endif
 #  include <strings.h>
 #endif
-
-/* define type */
-typedef unsigned int	uint;
-typedef unsigned long	ulong;
-typedef uint8_t		uint8;
-typedef uint16_t	uint16;
-typedef uint32_t	uint32;
-typedef uint64_t	uint64;
-typedef int8_t		int8;
-typedef int16_t		int16;
-typedef int32_t		int32;
-typedef int64_t		int64;
 
 /**
  * define maxpath

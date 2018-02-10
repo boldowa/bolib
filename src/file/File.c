@@ -1,5 +1,5 @@
 /**
- * File.c
+ * @file File.c
  */
 #include "common/types.h"
 #include <stdlib.h>

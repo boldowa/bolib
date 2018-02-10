@@ -1,6 +1,6 @@
 #pragma once
 /**
- * RomFile.protected.h
+ * @file RomFile.protected.h
  */
 
 typedef struct _SA1AdrInfo {

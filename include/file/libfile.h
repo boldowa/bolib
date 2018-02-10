@@ -1,5 +1,6 @@
+#pragma once
 /**
- * libfile.h
+ * @file libfile.h
  */
 
 bool fexists(const char* const);

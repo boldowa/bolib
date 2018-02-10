@@ -1,3 +1,7 @@
 #pragma once
+/**
+ * @file compiler.h
+ */
+
 #define C_COMPILER "@BO_C_COMPILER@(@CMAKE_C_COMPILER_ID@)"
 #define C_COMPILER_VER "@BO_C_COMPILER_VERSION@"

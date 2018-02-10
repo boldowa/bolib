@@ -1,5 +1,5 @@
 /**
- * libfile.c
+ * @file libfile.c
  */
 #if !isWindows
 #  ifndef _XOPEN_SOURCE

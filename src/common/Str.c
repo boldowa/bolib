@@ -1,3 +1,6 @@
+/**
+ * @file Str.c
+ */
 #include "common/types.h"
 #include <assert.h>
 #include <ctype.h>

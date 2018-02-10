@@ -1,9 +1,7 @@
 #pragma once
-/**********************************************************
- *
- * ReadWrite is responsible for ...
- *
- **********************************************************/
+/**
+ * @file ReadWrite.h
+ */
 
 uint16 read16(const uint8*);
 uint32 read24(const uint8*);

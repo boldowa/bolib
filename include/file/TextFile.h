@@ -1,6 +1,6 @@
 #pragma once
 /**
- * TextFile.h
+ * @file TextFile.h
  */
 
 /**

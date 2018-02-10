@@ -1,6 +1,6 @@
 #pragma once
 /**
- * RomFile.h
+ * @file RomFile.h
  */
 
 typedef enum RomType{

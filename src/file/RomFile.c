@@ -1,5 +1,5 @@
 /**
- * RomFile.c
+ * @file RomFile.c
  */
 #include "common/types.h"
 #include <stdlib.h>
@@ -344,22 +344,32 @@ static const int sa1banks[8] = { 0 << 20, 1 << 20, -1, -1, 2 << 20, 3 << 20, -1,
 
 static uint32 SA1_Snes2Pc(RomFile* self, const uint32 sna)
 {
+	uint32 pca = 0xffffffff;
+
 	if ((sna & 0x408000) == 0x008000)
 	{
-		return sa1banks[(sna & 0xE00000) >> 21] | ((sna & 0x1F0000) >> 1) | (sna & 0x007FFF);
+		pca = sa1banks[(sna & 0xE00000) >> 21] | ((sna & 0x1F0000) >> 1) | (sna & 0x007FFF);
 	}
 	if ((sna & 0xC00000) == 0xC00000)
 	{
-		return sa1banks[((sna & 0x100000) >> 20) | ((sna & 0x200000) >> 19)] | (sna & 0x0FFFFF);
+		pca = sa1banks[((sna & 0x100000) >> 20) | ((sna & 0x200000) >> 19)] | (sna & 0x0FFFFF);
 	}
+
+	/* valid address check */
+	if(self->pro->size > pca) return pca;
+
 	return ROMADDRESS_NULL;
 }
 static uint32 SA1_Pc2Snes(RomFile* self, const uint32 pca)
 {
-	{int i; for (i = 0;i < 8;i++)
+	int i; 
+	for (i = 0;i < 8;i++)
 	{
-		if (sa1banks[i] == (pca & 0x600000)) { return 0x008000 | (i << 21) | ((pca&((i < 4) ? 0x0F8000 : 0x1F8000)) << 1) | (pca & 0x7FFF); }
-	}}
+		if (sa1banks[i] == (pca & 0x600000))
+		{
+			return (uint32)(0x008000 | (i << 21) | ((pca&((i < 4) ? 0x0F8000 : 0x1F8000)) << 1) | (pca & 0x7FFF));
+		}
+	}
 	return ROMADDRESS_NULL;
 }
 /**
@@ -1026,7 +1036,7 @@ static bool ChecksumUpdate(RomFile* self)
 	return true;
 }
 
-static const uint8* SearchSub(const uint8* begin, const uint8* end, const uint32 len)
+static const uint8* SearchSub(const uint8* begin, const uint8* end, const uint32 len, uint32* locContinue)
 {
 	uint32 i;
 	uint32 c;
@@ -1034,7 +1044,7 @@ static const uint8* SearchSub(const uint8* begin, const uint8* end, const uint32
 	uint16 rsize;
 
 	c = 0;
-	i = 0;
+	i = (*locContinue);
 	base = 0;
 	/* search loop */
 	while(&begin[i]<end)
@@ -1066,6 +1076,7 @@ static const uint8* SearchSub(const uint8* begin, const uint8* end, const uint32
 		i++;
 	}
 
+	(*locContinue) = i;
 	return NULL;
 }
 
@@ -1075,6 +1086,7 @@ static uint32 SearchFreeSpace(RomFile* self, const uint32 len)
 	uint8 *top, *tail;
 	uint32 bnksize;
 	const uint8 *result;
+	uint32 locContinue;
 	uint8 *end;
 
 	end = self->GetPcPtr(self, (uint32)self->pro->size-1);
@@ -1094,10 +1106,11 @@ static uint32 SearchFreeSpace(RomFile* self, const uint32 len)
 	tail = top + bnksize-1;
 
 	/* search space */
-	for(;tail<=end; top+=bnksize, tail+=bnksize)
+	locContinue = 0;
+	for(;tail<=end; top+=bnksize, tail+=bnksize, locContinue-=bnksize)
 	{
 		/* set range */
-		result = SearchSub(top, tail, reallen);
+		result = SearchSub(top, tail, reallen, &locContinue);
 		if(NULL != result)
 		{
 			uint32 pca;

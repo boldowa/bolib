@@ -1,6 +1,6 @@
 #pragma once
 /**
- * Iterator.protected.h
+ * @file Iterator.protected.h
  */
 
 /**
