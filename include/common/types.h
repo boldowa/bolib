@@ -51,7 +51,6 @@
 #    define fopen(fn,m) _fopen_b(fn,m,__func__)
      FILE* _fopen_b(const char*, const char*, const char*);
 #  endif
-#  include <strings.h>
 #endif
 
 /**
